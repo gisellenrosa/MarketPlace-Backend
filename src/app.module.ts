@@ -1,11 +1,21 @@
 import { Module } from '@nestjs/common';
-import { AppService } from './app.service';
-import { CreateSellerController } from './http/create-sellers-controller';
-import { PrismaService } from './prisma/prisma.service';
+import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './infra/auth/auth.module';
+import { envSchema } from './infra/env/env';
+import { EnvModule } from './infra/env/env.module';
+import { EventsModule } from './infra/events/events.module';
+import { HttpModule } from './infra/http/http.module';
 
 @Module({
-  imports: [],
-  controllers: [CreateSellerController],
-  providers: [AppService, PrismaService],
+  imports: [
+    ConfigModule.forRoot({
+      validate: (env) => envSchema.parse(env),
+      isGlobal: true,
+    }),
+    AuthModule,
+    HttpModule,
+    EnvModule,
+    EventsModule,
+  ],
 })
 export class AppModule {}

@@ -1,11 +1,11 @@
-import { Either, left, right } from '@/core/either';
 import { Injectable } from '@nestjs/common';
-import { Seller } from '../../enterprise/entities/seller'; // Entidade do Seller
+import { Either, left, right } from 'src/core/either';
 import { HashGenerator } from '../cryptography/hash-generator';
-import { SellersRepository } from '../repositories/sellers-repository'; // Repositório do Seller
-import { SellerAlreadyExistsError } from './errors/seller-already-exists-error'; // Erro de Seller já existe
+import { Seller } from '../enterprise/entities/seller';
+import { SellersRepository } from '../repositories/sellers-repository';
+import { SellerAlreadyExistsError } from './errors/seller-already-exists-error';
 
-interface CreateSellerUseCaseRequest {
+interface RegisterSellerUseCaseRequest {
   name: string;
   email: string;
   password: string;
@@ -13,13 +13,13 @@ interface CreateSellerUseCaseRequest {
   avatarId?: string;
 }
 
-type CreateSellerUseCaseResponse = Either<
+type RegisterSellerUseCaseResponse = Either<
   SellerAlreadyExistsError,
   { seller: Seller }
 >;
 
 @Injectable()
-export class CreateSellerUseCase {
+export class RegisterSellerUseCase {
   constructor(
     private sellersRepository: SellersRepository,
     private hashGenerator: HashGenerator,
@@ -31,11 +31,11 @@ export class CreateSellerUseCase {
     password,
     phone,
     avatarId,
-  }: CreateSellerUseCaseRequest): Promise<CreateSellerUseCaseResponse> {
+  }: RegisterSellerUseCaseRequest): Promise<RegisterSellerUseCaseResponse> {
     const sellerWithSameEmail = await this.sellersRepository.findByEmail(email);
 
     if (sellerWithSameEmail) {
-      return left(new SellerAlreadyExistsError(email)); // Retorna um erro caso já exista
+      return left(new SellerAlreadyExistsError(email));
     }
 
     const hashedPassword = await this.hashGenerator.hash(password);
@@ -50,6 +50,6 @@ export class CreateSellerUseCase {
 
     await this.sellersRepository.create(seller);
 
-    return right({ seller }); // Retorna o seller criado
+    return right({ seller });
   }
 }
